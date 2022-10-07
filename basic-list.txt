@@ -1,3 +1,5 @@
+Module 2 - Introduction to shell and navigation **************************
+
 - Listinig files and directories (ls)
 	ls -la
 	-a do not ignore entries starting with .
@@ -64,4 +66,445 @@
 	[!abcde] any character that is not listed
 	[!a-e] any character that is not in the range specified
 	{pi,raspberry} exactly one entire word from the options given
-- 
+
+Module 3 - Working with files ***************************************************
+
+cat
+- The cat command is a really versatile command that is typically used to carry out 
+three different functions. It can display a file on the screen, combine different files 
+together (concatenate them) or create new files.
+	- To display the file foo.txt on the screen we would use;
+		cat foo.txt
+	- To display the files foo.txt and bar.txt on the screen one after the other we would use;
+		cat foo.txt bar.txt
+	- Or to combine the files foo.txt and bar.txt into a new file called foobar.txt using 
+	the redirection symbol >;
+		cat foo.txt bar.txt > foobar.txt
+
+less
+- The less command is used to display text files on the screen one page at a time. This is a useful
+command that has to some degree superseded the command more in that it provides a similar
+but expanded functionality
+	- less [options] filename : Display text files
+	- For example, to show the first page in the text file var/log/dmesg that contains the 
+	text ‘cpu_-capacity’ we could use the command as follows;
+		less +/"cpu_capacity" /var/log/dmesg
+	- options:
+		-i will ignore case in searches that do not contain uppercase.
+		-I will ignore case in all searches.
+		-s will squeeze multipple blank lines into one
+		-p string specifies a string that will be searched for in the file.
+		+num will start displaying the file at line number num
+		-N will display line Numbers next to the lines
+	- useful hotkeys:
+		h 	Display help page for less (when less is open)
+		Space 	Next page
+		/ 	Search (remember to press Enter to execute search)
+		n 	Repeat search, i.e. show next match at the top of the page.
+		q 	Exit
+
+head
+- The head command is designed to print the first part of a file to the screen. 
+By default it will print out the first 10 lines. It is a very handy program for quickly 
+checking out the start of a file.
+	- head [options] filename(s) : List the first part of a specified file
+	- There are a small number of options available for head. There are two that are 
+	more commonly used than others;
+		-c[num] prints the first num number of bytes of the file (where 8 bytes is a character)
+		-n[num] prints the first num number of lines of the file
+
+tail
+- The tail command is designed to print the last part of a file to the screen. By default 
+it will print out the last 10 lines. It is a very handy program for quickly checking out 
+the end of a file.
+	- tail [options] filename(s) : List the last part of a specified file
+	- Options. There are a small number of options available for tail. There are three 
+	that are more commonly used than others;
+		-c[num] prints the last num number of bytes of the file (where 8 bytes is a character)
+		-n[num] prints the last num number of lines of the file
+		-f prints the last 10 lines of the file and if new lines are added it will output those as well
+
+file
+- There is a command file which determines the file type of an argument file. 
+Basic usage is very simple: file fileName
+
+wc
+- There is a command wc (word count) which, by default, prints line, word and byte counts 
+of an argument file. There are also options which allow you to check only the desired 
+counts. 
+- Option 	Usage	Example counts of README file
+	-l 	(New)line count 1014
+	-w 	Word count 6858
+	-m 	Character count 44865
+	-c Byte count 44865
+	-L 	Maximum display width	 78
+	
+diff
+- The diff command is used for comparing two files or directories and reporting what the
+differences are between them. It is a common situation to find ourselves wondering what the
+difference is between two almost identical files or directories and this command will determine
+those differences.
+	- diff [options] from-file to-file : Display the differences between two files
+	- There are plenty of different options for use, but come of the more commonly used 
+	are as follows;
+		-q Report only when files differ, not the actual differences (per first example)
+		-c Format the output with more context
+		-i ignore any differences in case
+		-r recursivly compare subdirectories
+		
+chmod
+- The chmod command allows us to set or modify a file’s permissions. Because Linux is built as
+a multi-user system there are typically multiple different users with differing permissions for
+which files they can read / write or execute. chmod allows us to limit access to authorised users
+to do things like editing web files while general users can only read the files.
+	- chmod [options] mode files : Change access permissions of one or more files & directories
+- For example, the following command (which would most likely be prefixed with sudo) sets the
+permissions for the /var/www directory so that the user can read from, write to and change into
+the directory. Group owners can also read from, write to and change into the directory. All others
+can read from and change into the directory, but they cannot create or delete a file within it;
+	- chmod 775 /var/www
+- We also have three levels of ownership: ‘user’, ‘group’ and ‘others’ so we need a triplet (three
+sets of three) for each, resulting in nine bits.
+	- rwx rw- r--
+	  111 110 100
+	  =7  =6 = 4
+- The main option that is worth remembering is the -R option that will Recursively apply
+permissions on the files in the specified directory and its sub-directories.
+  The following command will change the permissions for all the files in the /srv/foo directory
+and in all the directories that are under it;
+	chmod -R 764 /srv/foo
+- In symbolic mode we can change the permissions of a file with the following syntax:
+	chmod [who][op][permissions] filename
+	- Where who can be the user (u), the group owner (g) and / or others (o). The operator (op) is either +
+	to add a permission, - to remove a permission or = to explicitly set permissions. The permissions
+	themselves are either readable (r), writeable (w), or executable (x)
+	- For example the following command adds executable permissions (x) to the user (u) 
+	for the file /tmp/foo.txt;
+		chmod u+x /tmp/foo.txt
+	- This command removes writing (w) and executing (x) permissions from the group owner (g) and
+	all others (o) for the same file;
+		chmod go-wx /tmp/foo.txt
+	- Note that removing the execute permission from a directory will prevent you from being able
+	to list its contents (although root will override this). If you accidentally remove the execute
+	permission from a directory, you can use the +X argument to instruct chmod to only apply the
+	execute permission to directories.
+		chmod -R u+X /home/pi/*
+
+chgrp
+- The chgrp command is used for changing the group ownership of a file or directory. In this sense
+it is very similar to chown command, except that it is used for changing group membership rather
+than that of users.
+	chgrp [options] group files : Change group ownership of one or more files & directories
+- For example, the following command (which would most likely be prefixed with sudo) sets the
+group ownership for the /srv/shared directory. The group permissions on this directory now
+apply to any users in the users group. In most cases the chmod command would then be used to
+ensure that the permissions for the group on that directory are correct.
+	chgrp users /srv/shared
+- The most commonly used option with chgrp is the -R option. Just like chown and chgrp, this
+causes chgrp to change permissions recursively; that is to the target directory itself and all of its
+contents.
+Another possible option is --reference. This changes the target group ownership to the same
+as that of the reference file. For example:
+	chgrp --reference=file1.txt file2.txt
+- Fortunately chgrp is pretty simple! Simply make sure the group name is the first argument, and
+any subsequent arguments are files and directories you intend to modify.
+	chgrp groupname file1 file2 ...
+
+chown
+The chown command changes the user and/or group ownership of given files. Because Linux
+is built as a multi-user system there are typically multiple different users (not necessarily
+actual people, but daemons or other programs who may run as their own user) responsible for
+maintaining clear permission boundaries that separate services to prevent corruption or maintain
+security or privacy. This allows us to limit access to authorised users to do things like editing
+web files.
+	chown [options] newowner files : Change the ownership of one or more files & directories
+For example, if we want to make the user www-data the owner of the directory www (in the /var
+directory) and we want to pass the group ownership of that directory to the group www-data we
+would run the following command;
+	chown www-data:www-data /var/www
+- The main option that is worth remembering is the -R option that will Recursively apply
+permissions on the files in the specified directory and its sub-directories.
+The following command will change the owner to the user ‘apache’ for the /var/www directory
+and all the directories that are under it;
+	chown -R apache /var/www
+
+Compressing files (zip/unzip, gzip/gunzip, tar)
+- zip file.zip testfile.txt
+- unzip file.zip
+- (you will need -r flag to tell zip to recurse into the directory)
+
+gzip
+gzip is a tool for compressing and decompressing a file (or multiple files) using the gzip format.
+By itself gzip can only compress one file at a time, so if multiple files need to be compressed
+then tar is normally used to combine the files into a single archive file first. That archive file can
+then be compress with gzip. It can be a useful action to compress files when transferring them
+or storing them to save bandwidth or space.
+	gzip [options] filename : compress or expand files
+In its simplest use case we only need to use the gzip command and the file name as follows;
+	gzip files.txt
+- The options that are the most common and arguably the most useful include;.
+	-d : decompresses a compressed file.
+	-l : lists the details of a decompression process
+- To decompress a gzipped file we can use the gzip command with the -d option as follows;
+	gzip -d files.txt.gz
+  Or we can use the gunzip command which is the equivalent of gzip -d like this;
+	gunzip files.txt.gz	
+
+tar
+- The tar command is designed to facilitate the creation of an archive of files by combining a
+range of files and directories into a single file and providing the ability to extract these files
+again. While tar does not include compression as part of its base function, it is available via an
+option. tar is a useful program for archiving data and as such forms an important command for
+good maintenance of files and systems.
+	tar [options] archivename [file(s)] : archive or extract files
+- However, just because it has a lot of options does not mean that it needs to be difficult to use for
+a standard set of tasks and at its most basic is the creation of an archive of files as follows;
+	tar -cvf foobar.tar foo.txt bar.txt
+- The options used allow us to;
+	c : create a new archive
+	v : verbosely list files which are processed.
+	f : specify the following name as the archive file name
+- To carry the example through to its logical conclusion we would want to extract the files from
+the archive as follows;
+	tar -xvf foobar.tar
+	The options used allow us to;
+	x : extract an archive
+	v : verbosely list files which are processed.
+	f : specify the following name as the archive file name
+- One advantage to using tar over other archiving tools such as zip is that tar is designed to
+preserve Unix filesystem features such as user and group permissions, access and modification
+dates, and directory structures.
+Another advantage to using tar for compressed archives is the fact that any compression is
+applied to the tarball in its entirety, rather than individual files within the archive as is the case
+with zip files. This allows for more efficient compression as the process can take advantage of
+data redundancy across multiple files.
+- options 
+	c : Create a new tar archive.
+	x : Extract a tar archive.
+	f : Work on a file.
+	z : Use Gzip compression or decompression when creating or extracting.
+	t : List the contents of a tar archive
+
+history
+- There is a simple command, history, to display your whole command history. History displays a listing of commands paired with their command numbers.
+
+!
+The !-sign is used to re-execute previous commands. ! followed by a string can be used to execute latest command started with the given string. Similarly you can run previous commands with !-<number> where the number is the command number of previously executed command.  For example:
+	!-5 this will execute 5th previous command 
+	
+ctrl-r:
+This one allows you to do reverse-i-search to your command history. This simply means that by pressing Ctrl + R you can type your search term, for example man
+
+***********************************
+Module 4 - Search and filter
+
+uniq
+- With uniq command we can filter out duplicate entries in a text file. See the example below. 
+You might notice that while the uniq command removes some of the duplicates, some still remain. 
+It's important to remember that uniq command only removes adjacent lines from the input! 
+
+sort
+- sort command, like the name suggests, sorts the given input. Sort has a lot of options which are useful 
+when trying to sort in a particular way. For example, with option -r (--reverse) items are sorted in reversed 
+order and with -h (--human-numeric-sort) items are compared as human readable numbers like 4K and 1G. 
+Read more about these wonderful options from the sort's man page (man sort). 
+
+I/O redirection (<, >, >>)
+- We use the > symbol to redirect the output of a command. For example, to create a file called list1 
+containing a list of fruit, type  
+	% cat > list1
+- The form >> appends standard output to a file. So to add more items to the file list1, type
+	% cat >> list1
+-  Using < you can redirect the input to come from a file rather than the keyboard. For example, to sort 
+the list of fruit, type
+	% sort < biglist
+	and the sorted list will be output to the screen. 
+
+Pipes ( | )
+A simple example comes from the first topic of this lesson, sort and uniq. As we remember, uniq command only 
+removes the duplicates if the lines are adjacent. To truly remove all duplicate lines, we can first sort 
+the file and remove the duplicates after that with uniq. This can be done with previously learned redirection 
+but it's more useful to use pipes:
+	sort distros.txt | uniq
+
+cut
+The cut command is used to ‘cut out’ sections of each line of a file or files. It can perform the
+cut based on byte, character or field position in a row. When using field position the default
+separator is a tab, but this can be specified as an alternative using the options. This command
+will allow us to filter text files easily in situations where alternatives would be manual editing.
+	- cut [options] file : ‘cut out’ sections of each line of a file or files
+	- Using the cut command as follows we can cut out the third field of each line where a field is
+any number of characters between delimiters;
+		cut -f 3 cutme.txt
+	- Using our sample file cutme.txt from above we can specify cutting out the fields from 2 to 4 as
+follows;
+		cut -f 2-4 cutme.txt
+	-c cut based on the number of characters
+	-b cut based on the number of bytes
+	-f cut based on the number of fields that are deliminated
+	-d use a specific character as a deliminator
+	- cut option	usage
+		-c n-m 	Select characters from n to m
+		-f n-m 	Select fields from n to m
+		-d 'delim' 	Define delimiter between fields, default is a tabulator
+	- user@ubuntu:~/Documents$ cat distros.txt
+		Ubuntu;2004;18.04;Bionic Beaver
+	Debian;1993;10.0;Buster
+	CentOS;2004;7.6;CentOS 7.6
+	Linux Lite;2012;4.4;Diamond
+	user@ubuntu:~/Documents$ cut -c 1-3 distros.txt
+	Deb
+	Cen
+	Lin
+	user@ubuntu:~/Documents$
+	 user@ubuntu:~/Documents$ cut -c 1-2,21- distros.txt
+	Ubonic Beaver
+	Deter
+	CeOS 7.6
+	LiDiamond
+	user@ubuntu:~/Documents$
+	user@ubuntu:~/Documents$ cut -f 1,4 -d ';' distros.txt
+	Ubuntu;Bionic Beaver
+	Debian;Buster
+	CentOS;CentOS 7.6
+	Linux Lite;Diamond
+	
+tr
+- You can translate characters with tr. The screenshot shows the translation of all occurrences
+of e to E.
+	cat tennis.txt | tr 'e' 'E'
+- Here we set all letters to uppercase by defining two ranges.
+	cat tennis.txt | tr 'a-z' 'A-Z'
+- Here we translate all newlines to spaces.
+	cat count.txt | tr '\n' ' '
+- The tr -s filter can also be used to squeeze multiple occurrences of a character to one
+	cat spaces.txt | tr -s ' '
+- You can also use tr to 'encrypt' texts with rot13
+	cat count.txt | tr 'a-z' 'nopqrstuvwxyzabcdefghijklm'
+- This last example uses tr -d to delete characters.
+	cat tennis.txt | tr -d e
+
+sed
+	sed n-option '/filter/s/string1/string2/g' input.txt > output.txt
+	-option
+	-filter = filter lines before edit
+	- s=main command
+	- string1 = 1st string pattern
+	- string2 = 2st string pattern
+	- g = complement command
+	- sed options
+	 -option 	filter		main command	complement command 	usage
+	  -n												Don't display edited output.
+	  -f												Used to read sed script(s) from a file, the filename needs to be given as an argument in the place of sed script.
+	  -e												Is used to run multiple sed scripts at once. Syntax -e 'firstScript;secondScript'
+	  -E 	 	  	  	 								Enable usage of extended regular expression in the script
+	  -i												Changes will be made to an argument file instead of stdout.
+				n,m	  	  							Only lines from n to m are edited.  /filter/ can be excluded from the sed script to edit all lines.
+													When using n,m you do not need / around them.
+				$									The last line can be marked with $-sign. For example 4,$ will take all lines from 4 to end of the file.
+				/pattern/	  	  					It is possible to include filtering pattern here using regular expressions.
+													Only lines which match the pattern will be edited with rest of the sed script.
+								s					Replace string1with string2.
+											n <number> 	nth occurrence will be replaced. By default the first occurrence is replaced.
+											g 		Global flag to replace all occurrences.
+											i 		Ignore case in string1. All String1, string1, StRiNG1 will be replaced with string2.
+								a 					Append string1 after matched lines. USE space instead of / before string1.
+								i 	  				Insert string1 before matched lines. USE space instead of / before string1.
+								c 	  				Replace WHOLE matched line with string1. USE space instead of / before string1.
+								d 	  				Delete matched lines.
+								y 	  				Transform all characters in string1, with string2 characters. Similar as tr command.
+	- user@ubuntu:~/Documents$ cat distros.txt
+	Ubuntu;2004;18.04;Bionic Beaver
+	Debian;1993;10.0;Buster
+	CentOS;2004;7.6;CentOS 7.6
+	Linux Lite;2012;4.4;Diamond
+	user@ubuntu:~/Documents$ sed 's/;/-/' distros.txt   
+	Ubuntu-2004;18.04;Bionic Beaver
+	Debian-1993;10.0;Buster
+	CentOS-2004;7.6;CentOS 7.6
+	Linux Lite-2012;4.4;Diamond
+	user@ubuntu:~/Documents$ sed 's/;/---/g' distros.txt
+	Ubuntu---2004---18.04---Bionic Beaver
+	Debian---1993---10.0---Buster
+	CentOS---2004---7.6---CentOS 7.6
+	Linux Lite---2012---4.4---Diamond
+	user@ubuntu:~/Documents$ sed '3,$s/;/---/g' distros.txt
+	Ubuntu;2004;18.04;Bionic Beaver
+	Debian;1993;10.0;Buster
+	CentOS---2004---7.6---CentOS 7.6
+	Linux Lite---2012---4.4---Diamond
+	- It is also good to understand that everything is not needed to be done with sed. You can also use pipes and redirection to be able to utilise more familiar tools. For example, the following commands do the same thing.
+		sed -n '1,2s/;/---/gp' distros.txt
+		head -2 distros.txt | sed 's/;/---/g'
+
+find
+The find command is an extremely powerful and flexible tool for locating files based on
+matching criteria. Because there are always going to be a large range of files required to make
+up a system, a utility like find is essential to understand.
+• find [start-point] [search-criteria] [search-term] : find files
+- options:
+	• -name pattern : the file name which matches the pattern pattern
+	• -iname pattern : Like -name, but the match is case insensitive
+	• -mmin n : the file’s data was last modified n minutes ago
+	• -mtime n : the file’s data was last modified n *24 hours ago
+	• -newer file : the file was modified more recently than file
+	• -amin n : the file was last accessed n minutes ago.
+	• -atime n : the file was last accessed n *24 hours ago
+	• -user uname : the file is owned by user uname
+	• -group gname : the file belongs to group gname
+	• -executable : matches files which are executable and directories which are searchable
+	• -type c : the file is of type c:
+		– b block (buffered) special
+		– c character (unbuffered) special
+		– d directory
+		– p named pipe (FIFO)
+		– f regular file
+		– l symbolic link
+		– s socket
+	• -size n[cwbkMG] : File uses n units of space (rounding up). The following suffixes can
+	be used:
+		– b for 512-byte blocks (this is the default if no suffix is used)
+	– c for bytes
+		– w for two-byte words
+		– k for Kilobytes (units of 1024 bytes)
+		– M for Megabytes (units of 1048576 bytes)
+		– G for Gigabytes (units of 1073741824 bytes)
+	• -perm mode: The files have a specific set of permissions with mode different depending on
+	how we want to access them
+		– mode File’s permission bits are exactly mode
+		– -mode All of the permission bits mode are set for the file.
+		– /mode Any of the permission bits mode are set for the file.
+- Examples:
+	To search by name and to make the search case insensitive, we use -iname.
+		find /home/pi -iname missingfile.txt
+	To search for files that have been modified some number of minutes ago we would use -mmin.
+		find /home/pi -mmin -10
+	I created the file missingfile.txt a couple of days ago, and since that time I have made some
+	changes. So just what files have changed in my home directory since I modified that file?
+	find /home/pi -newer missingfile.txt
+
+	We can search by user using the -user criteria. In the following example we will look for files
+	that belong to the ‘root’ user in the directory /home/pi.
+		find /home/pi -user root
+	If we wanted to search for files larger than 1 Megabyte we would use;
+		find /home/pi/ -size +1M
+	find /home/pi/foodir -perm /a=x
+	
+	The find command starts to really flex its muscles when search criteria are combined. For
+	example we could search for all files belonging to the user ‘pi’ and which were above 1 Megabyte
+	as follows;
+		find /home/pi -user pi -size +1M
+	Or perhaps narrowing down a size window for a files above 500 Kilobytes and below 1 Megabyte;
+		find /home/pi -size +500k -size -1M
+	The following is a search that will return any files larger than 1 Megabyte from the entire file
+	system (starting at root (/). And when it strikes an error (like permission denied) it prints that
+	error to /dev/null;
+		find / -user pi -size +1M -print 2>/dev/null
+
+grep
+The grep command is used to search text from files or piped input for lines containing a match
+to a given pattern. It is one of the most powerful and versatile commands in Linux and mastery
+of the grep command is synonymous with a good understanding of the command line interface.
+	grep [options] pattern [file] : Search text and match patterns
+For example the following command will search for the text “cpus” in the file /var/log/dmesg;
+	grep cpus /var/log/dmesg
